@@ -1,0 +1,46 @@
+[cluster]
+    [cluster.node]
+        id = ""
+        name = "hall"
+        codec = "proto"
+[transport]
+    [transport.grpc]
+        [transport.grpc.server]
+            addr = ":8662"
+            keyFile = ""
+            certFile = ""
+        [transport.grpc.client]
+            certFile = ""
+            serverName = ""
+[packet]
+    endian = "little"
+    seqBytesLen = 2
+    routeBytesLen = 2
+[log]
+    file = "./log/dreamcity.log"
+    level = "debug"
+    format = "text"
+    stdout = true
+    timeFormat = "2006/01/02 15:04:05.000000"
+    stackLevel = "error"
+    fileMaxAge = "7d"
+    fileMaxSize = 100
+    fileCutRule = "day"
+    callerFullPath = true
+    classifiedStorage = true
+[locate]
+    [locate.redis]
+        addrs = ["127.0.0.1:6379"]
+        db = 0
+        username = ""
+        password = "dreamcity"
+        maxRetries = 3
+        prefix = "dreamcity"
+[registry]
+    [registry.etcd]
+    addrs = ["127.0.0.1:2379"]
+    dialTimeout = 5
+    namespace = "services"
+    timeout = 3
+    retryTimes = 3
+    retryInterval = 10
