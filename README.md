@@ -13,3 +13,18 @@ binary.Write(dataBuff, binary.LittleEndian, uint32(0))
 hbData := dataBuff.Bytes()
 ```
 
+## 序列化
+
+默认使用gogoprotobuf，安装：
+
+```bash
+go install github.com/gogo/protobuf/protoc-gen-gofast@latest
+```
+
+生成文件：
+
+```makefile
+protoc:
+	cd shared/pb && protoc --gofast_out=. *.proto
+```
+
