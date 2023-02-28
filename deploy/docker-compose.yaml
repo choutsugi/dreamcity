@@ -11,5 +11,23 @@ services:
       - ./data/redis:/data
     command: redis-server /etc/redis/redis.conf
     privileged: true
+    networks:
+      - dreamcity-net
 
+  docker-etcd:
+    hostname: etcd
+    image: bitnami/etcd:latest
+    container_name: etcd
+    volumes:
+      - ./data/etcd:/bitnami/etcd/data
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379
+    ports:
+      - "2379:2379"
+    networks:
+      - dreamcity-net
 
+networks:
+  dreamcity-net:
+    driver: bridge
