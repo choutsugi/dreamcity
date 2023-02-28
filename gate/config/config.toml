@@ -18,7 +18,7 @@
         serverName = ""
 [packet]
     # 字节序，little | big
-    endian = "big"
+    endian = "little"
     # 序列号字节长度（字节）
     seqBytesLen = 2
     # 路由字节长度（字节）
