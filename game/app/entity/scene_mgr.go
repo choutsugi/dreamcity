@@ -7,7 +7,7 @@ type SceneMgr struct {
 	scenes map[string]*Scene
 }
 
-func NewSceneMgr(opts []*SceneOptions) *SceneMgr {
+func NewSceneMgr(opts []*SceneOpts) *SceneMgr {
 	mgr := &SceneMgr{scenes: make(map[string]*Scene, len(opts))}
 	for i := range opts {
 		scene := newScene(opts[i])

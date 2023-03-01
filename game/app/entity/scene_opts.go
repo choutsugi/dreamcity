@@ -1,6 +1,6 @@
 package entity
 
-type SceneOptions struct {
+type SceneOpts struct {
 	ID     string `msgpack:"id"`
 	Name   string `msgpack:"name"`
 	MinX   int    `msgpack:"minX"`

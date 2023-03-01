@@ -24,7 +24,7 @@ type MetaWorld struct {
 
 func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
 
-	opts := make([]*entity.SceneOptions, 0)
+	opts := make([]*entity.SceneOpts, 0)
 	if err := config.Get("dreamcity.scenes").Scan(&opts); err != nil {
 		log.Fatalf("failed to load dreamcity scenes config: %+v\n", err)
 	}

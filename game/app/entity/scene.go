@@ -14,7 +14,7 @@ type Scene struct {
 	rw        sync.RWMutex
 }
 
-func newScene(opt *SceneOptions) *Scene {
+func newScene(opt *SceneOpts) *Scene {
 	gridMgr := aoi.NewGridMgr(opt.MinX, opt.MaxX, opt.ContsX, opt.MinY, opt.MaxY, opt.ContsY)
 	return &Scene{
 		ID:      opt.ID,
