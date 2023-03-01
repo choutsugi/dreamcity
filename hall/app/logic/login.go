@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/login"
 	"dreamcity/shared/service"
 	"github.com/dobyte/due/cluster/node"
@@ -40,8 +41,7 @@ func (l *Login) login(ctx *node.Context) {
 	// 解析请求
 	if err := ctx.Request.Parse(req); err != nil {
 		log.Errorf("invalid login message, err: %v", err)
-		res.State = false
-		res.Msg = "消息未注册"
+		res.Code = code.Code_Abnormal
 		return
 	}
 
@@ -66,13 +66,12 @@ func (l *Login) login(ctx *node.Context) {
 	// 绑定网关
 	if err := ctx.BindGate(req.Uid); err != nil {
 		log.Errorf("bind gate failed, err: %v", err)
-		res.State = false
+		res.Code = code.Code_Failed
 		return
 	}
 
 	// 响应
-	res.State = true
-	res.Msg = "登录成功"
+	res.Code = code.Code_Ok
 	log.Infof("登录成功, uid = %d\n", req.Uid)
 }
 

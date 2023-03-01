@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option go_package = "./login";
+option go_package = "dreamcity/shared/pb/login";
 
 package login;
+
+import "code.proto";
 
 // 用户登录请求
 message LoginReq {
@@ -12,6 +14,5 @@ message LoginReq {
 
 // 用户登录响应
 message LoginRes {
-  bool State = 1;
-  string Msg = 2;
+  code.Code code = 1;
 }

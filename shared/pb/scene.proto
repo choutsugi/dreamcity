@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option go_package = "./scene";
+option go_package = "dreamcity/shared/pb/scene";
 
 package scene;
+
+import "code.proto";
 
 message Position {
   float X = 1;
@@ -26,11 +28,9 @@ message EnterReq {
   string Sid = 1;
   Position Pos = 2;
 }
-
 // 响应
 message EnterRes {
-  bool State = 1;
-  string Msg = 2;
+  code.Code code = 1;
 }
 
 // 广播

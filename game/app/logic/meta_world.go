@@ -4,6 +4,7 @@ import (
 	"context"
 	"dreamcity/game/app/entity"
 	"dreamcity/shared/model/user"
+	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/scene"
 	"github.com/dobyte/due/cluster"
 	"github.com/dobyte/due/cluster/node"
@@ -66,25 +67,25 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 	// 解析参数
 	if err := ctx.Request.Parse(req); err != nil {
 		log.Errorf("invalid enter_scene message, err: %v", err)
-		res.Msg = "消息未注册"
+		res.Code = code.Code_Abnormal
 		return
 	}
 	// 检查是否登录
 	uid := ctx.Request.UID
 	if uid == 0 {
-		res.Msg = "未登录"
+		res.Code = code.Code_NotLogin
 		return
 	}
 	// 获取场景
 	scene, err := l.sceneMgr.GetScene(req.GetSid())
 	if err != nil {
-		res.Msg = "场景不存在"
+		res.Code = code.Code_IllegalParams
 		return
 	}
 	// 检查位置是否正确
 	if req.GetPos().GetX() < float32(scene.GridMgr.MinX) || req.GetPos().GetX() > float32(scene.GridMgr.MaxX) ||
 		req.GetPos().GetZ() < float32(scene.GridMgr.MinY) || req.GetPos().GetZ() > float32(scene.GridMgr.MaxY) {
-		res.Msg = "请求参数错误"
+		res.Code = code.Code_IllegalParams
 		return
 	}
 	// 检查玩家是否已在其它场景中
@@ -158,5 +159,5 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 
 	ctx.BindNode()
 
-	res.State = true
+	res.Code = code.Code_Ok
 }

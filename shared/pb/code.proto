@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "dreamcity/shared/pb/code";
+
+package code;
+
+enum Code {
+  Ok = 0;
+  Failed = 1;
+  Abnormal = 2;
+  IllegalParams = 3;
+  TokenExpired = 4;
+  NotLogin = 5;
+}
