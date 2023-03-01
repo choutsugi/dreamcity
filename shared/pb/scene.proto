@@ -5,7 +5,7 @@ option go_package = "dreamcity/shared/pb/scene";
 package scene;
 
 import "code.proto";
-
+//=============================
 message Position {
   float X = 1;
   float Y = 2;
@@ -22,17 +22,20 @@ message Player{
   Position pos = 2;
   Action act = 3;
 }
-
-// 请求
+//=============================
 message EnterReq {
   string Sid = 1;
   Position Pos = 2;
 }
-// 响应
 message EnterRes {
   code.Code code = 1;
 }
-
+//=============================
+message LeaveReq {}
+message LeaveRes {
+  code.Code code = 1;
+}
+//=============================
 // 广播
 message BroadCast{
   enum Tp {
@@ -52,4 +55,8 @@ message BroadCast{
 // 获取周围玩家信息
 message SyncArea{
   repeated Player ps=1;
+}
+// 同步其它玩家离开
+message SyncLeave{
+  int64 pid=1;
 }

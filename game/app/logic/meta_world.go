@@ -46,6 +46,19 @@ func (l *MetaWorld) disconnect(event *node.Event) {
 	player := l.playerMgr.GetPlayer(event.UID)
 	if player != nil {
 		if scene := player.GetScene(); scene != nil {
+			// 获取周围的玩家ID
+			targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
+			targets = sugar.Delete(targets, event.UID)
+			l.proxy.Multicast(l.ctx, &node.MulticastArgs{
+				Kind:    session.User,
+				Targets: targets,
+				Message: &node.Message{
+					Route: route.SyncLeave,
+					Data: &pb.SyncLeave{
+						Pid: event.UID,
+					},
+				},
+			})
 			scene.RemPlayer(player)
 		}
 		l.playerMgr.RemPlayer(player)

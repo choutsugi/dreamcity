@@ -6,4 +6,5 @@ const (
 	EnterScene int32 = 1001
 	LeaveScene int32 = 1002
 	SyncArea   int32 = 1003
+	SyncLeave  int32 = 1004
 )
