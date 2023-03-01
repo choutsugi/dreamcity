@@ -6,6 +6,7 @@ import (
 	"dreamcity/shared/model/user"
 	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/scene"
+	"dreamcity/shared/pkg/sugar"
 	"dreamcity/shared/route"
 	"github.com/dobyte/due/cluster"
 	"github.com/dobyte/due/cluster/node"
@@ -112,6 +113,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 		l.playerMgr.AddPlayer(player)
 		// 获取周围的玩家ID
 		targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
+		targets = sugar.Delete(targets, uid)
 		// 广播玩家出现
 		l.proxy.Multicast(l.ctx, &node.MulticastArgs{
 			Kind:    session.User,
