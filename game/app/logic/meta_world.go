@@ -98,7 +98,8 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			player.SetScene(nil)
 		}
 	} else {
-		player = entity.NewPlayer(&user.User{UID: uid}, req.Pos.X, req.Pos.Y, req.Pos.Z, req.Pos.V)
+		user := &user.User{UID: uid}
+		player = entity.NewPlayer(user, req.Pos.X, req.Pos.Y, req.Pos.Z, req.Pos.V)
 	}
 	// 玩家进入场景
 	{
@@ -116,7 +117,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			Kind:    session.User,
 			Targets: targets,
 			Message: &node.Message{
-				Route: int32(route.Broadcast),
+				Route: route.Broadcast,
 				Data: &pb.BroadCast{
 					Pid: uid,
 					Tp:  pb.BroadCast_PlayerAppear,
@@ -150,7 +151,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			Kind:   session.User,
 			Target: uid,
 			Message: &node.Message{
-				Route: int32(route.SyncArea),
+				Route: route.SyncArea,
 				Data: &pb.SyncArea{
 					Ps: surPs,
 				},
