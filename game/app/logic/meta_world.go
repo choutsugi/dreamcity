@@ -5,7 +5,6 @@ import (
 	"dreamcity/game/app/entity"
 	"dreamcity/shared/model/user"
 	pb "dreamcity/shared/pb/scene"
-	"dreamcity/shared/service"
 	"github.com/dobyte/due/cluster"
 	"github.com/dobyte/due/cluster/node"
 	"github.com/dobyte/due/config"
@@ -18,7 +17,6 @@ type MetaWorld struct {
 	ctx       context.Context
 	sceneMgr  *entity.SceneMgr
 	playerMgr *entity.PlayerMgr
-	sceneSvc  *service.Scene
 }
 
 func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
@@ -33,7 +31,6 @@ func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
 		ctx:       context.Background(),
 		sceneMgr:  entity.NewSceneMgr(opts), // 场景管理器
 		playerMgr: entity.NewPlayerMgr(),    // 玩家管理器
-		sceneSvc:  service.NewScene(proxy),
 	}
 }
 
