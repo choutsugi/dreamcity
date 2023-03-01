@@ -6,6 +6,7 @@ import (
 	"dreamcity/shared/model/user"
 	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/scene"
+	"dreamcity/shared/route"
 	"github.com/dobyte/due/cluster"
 	"github.com/dobyte/due/cluster/node"
 	"github.com/dobyte/due/config"
@@ -37,7 +38,7 @@ func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
 
 func (l *MetaWorld) Init() {
 	l.proxy.Events().AddEventHandler(cluster.Disconnect, l.disconnect)
-	l.proxy.Router().AddRouteHandler(2, false, l.enterScene)
+	l.proxy.Router().AddRouteHandler(route.EnterScene, false, l.enterScene)
 }
 
 func (l *MetaWorld) disconnect(event *node.Event) {
@@ -115,7 +116,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			Kind:    session.User,
 			Targets: targets,
 			Message: &node.Message{
-				Route: 3,
+				Route: int32(route.Broadcast),
 				Data: &pb.BroadCast{
 					Pid: uid,
 					Tp:  pb.BroadCast_PlayerAppear,
@@ -149,7 +150,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			Kind:   session.User,
 			Target: uid,
 			Message: &node.Message{
-				Route: 4,
+				Route: int32(route.SyncArea),
 				Data: &pb.SyncArea{
 					Ps: surPs,
 				},

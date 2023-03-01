@@ -4,6 +4,7 @@ import (
 	"context"
 	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/login"
+	"dreamcity/shared/route"
 	"dreamcity/shared/service"
 	"github.com/dobyte/due/cluster/node"
 	"github.com/dobyte/due/log"
@@ -25,8 +26,6 @@ func NewLogin(proxy *node.Proxy) *Login {
 
 // 登录请求
 func (l *Login) login(ctx *node.Context) {
-
-	log.Info("登录请求")
 
 	req := &pb.LoginReq{}
 	res := &pb.LoginRes{}
@@ -77,5 +76,5 @@ func (l *Login) login(ctx *node.Context) {
 
 func (l *Login) Init() {
 	// 注册路由
-	l.proxy.Router().AddRouteHandler(1, false, l.login)
+	l.proxy.Router().AddRouteHandler(route.Login, false, l.login)
 }
