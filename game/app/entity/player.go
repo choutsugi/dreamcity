@@ -38,7 +38,3 @@ func (p *Player) GetScene() *Scene {
 	scene := p.scene
 	return scene
 }
-
-func (p *Player) SetScene(scene *Scene) {
-	p.scene = scene
-}

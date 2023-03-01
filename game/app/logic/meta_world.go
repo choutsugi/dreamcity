@@ -40,6 +40,7 @@ func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
 func (l *MetaWorld) Init() {
 	l.proxy.Events().AddEventHandler(cluster.Disconnect, l.disconnect)
 	l.proxy.Router().AddRouteHandler(route.EnterScene, false, l.enterScene)
+	l.proxy.Router().AddRouteHandler(route.LeaveScene, false, l.leaveScene)
 }
 
 func (l *MetaWorld) disconnect(event *node.Event) {
@@ -109,7 +110,6 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 		if scene := player.GetScene(); scene != nil {
 			// todo：广播玩家离开
 			scene.RemPlayer(player)
-			player.SetScene(nil)
 		}
 	} else {
 		user := &user.User{UID: uid}
@@ -118,10 +118,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 	// 玩家进入场景
 	{
 		// 玩家绑定场景
-		player.SetScene(scene)
 		scene.AddPlayer(player)
-		// 玩家ID添加到Grid
-		scene.GridMgr.AddPidToGridByPos(player.UID(), player.PosX, player.PosZ)
 		// 玩家管理器添加玩家
 		l.playerMgr.AddPlayer(player)
 		// 获取周围的玩家ID
@@ -175,6 +172,58 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 	}
 
 	ctx.BindNode()
+
+	res.Code = code.Code_Ok
+}
+
+func (l *MetaWorld) leaveScene(ctx *node.Context) {
+
+	req := &pb.LeaveReq{}
+	res := &pb.LeaveRes{}
+
+	defer func() {
+		if err := ctx.Response(res); err != nil {
+			log.Errorf("leave scene response failed, err: %+v\n", err)
+		}
+	}()
+
+	// 解析参数
+	if err := ctx.Request.Parse(req); err != nil {
+		log.Errorf("invalid leave_scene message, err: %v", err)
+		res.Code = code.Code_Abnormal
+		return
+	}
+	// 检查是否登录
+	uid := ctx.Request.UID
+	if uid == 0 {
+		res.Code = code.Code_NotLogin
+		return
+	}
+	// 获取场景
+	player := l.playerMgr.GetPlayer(uid)
+	if player == nil {
+		res.Code = code.Code_NotFound
+		return
+	}
+	scene := player.GetScene()
+	if scene == nil {
+		res.Code = code.Code_NotFound
+		return
+	}
+	// 移除玩家
+	targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
+	targets = sugar.Delete(targets, uid)
+	l.proxy.Multicast(l.ctx, &node.MulticastArgs{
+		Kind:    session.User,
+		Targets: targets,
+		Message: &node.Message{
+			Route: route.SyncLeave,
+			Data: &pb.SyncLeave{
+				Pid: uid,
+			},
+		},
+	})
+	scene.RemPlayer(player)
 
 	res.Code = code.Code_Ok
 }

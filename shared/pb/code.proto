@@ -11,4 +11,5 @@ enum Code {
   IllegalParams = 3;
   TokenExpired = 4;
   NotLogin = 5;
+  NotFound = 6;
 }

@@ -31,6 +31,7 @@ func (s *Scene) AddPlayer(player *Player) error {
 
 	player.scene = s
 	s.players[player.UID()] = player
+	s.GridMgr.AddPidToGridByPos(player.UID(), player.PosX, player.PosZ)
 	s.PlayerNum++
 
 	return nil
@@ -41,6 +42,7 @@ func (s *Scene) RemPlayer(player *Player) error {
 	s.rw.Lock()
 	defer s.rw.Unlock()
 
+	s.GridMgr.RemPidFromGridByPos(player.UID(), player.PosX, player.PosZ)
 	delete(s.players, player.UID())
 	player.scene = nil
 	s.PlayerNum--
