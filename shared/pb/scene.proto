@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "./scene";
+
+package scene;
+
+message Position {
+  float X = 1;
+  float Y = 2;
+  float Z = 3;
+  float V = 4;
+}
+message Action {
+  int32 sit   = 1;
+  int32 jump  = 2;
+  int32 dance = 3;
+}
+message Player{
+  int64 pid = 1;
+  Position pos = 2;
+  Action act = 3;
+}
+
+// 请求
+message EnterReq {
+  string Sid = 1;
+  Position Pos = 2;
+}
+
+// 响应
+message EnterRes {
+  bool State = 1;
+  string Msg = 2;
+}
+
+// 广播
+message BroadCast{
+  enum Tp {
+    PlayerAppear=0; // 玩家出现
+    PlayerMove=1;   // 玩家移动
+    PlayerAction=2; // 玩家动作
+    ChatContent=3;  // 玩家聊天
+  }
+  int64 pid=1;
+  Tp tp=2;
+  oneof Data {
+    string content=3;// 聊天信息
+    Position pos=4;  // 玩家位置
+    Action act=5;    // 玩家动作
+  }
+}
+// 获取周围玩家信息
+message SyncArea{
+  repeated Player ps=1;
+}

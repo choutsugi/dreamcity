@@ -1,2 +1,3 @@
 protoc:
-	cd shared/pb && protoc --gofast_out=. *.proto
+	cd shared/pb && protoc --gofast_out=./ login.proto
+	cd shared/pb && protoc --gofast_out=./ scene.proto

@@ -6,11 +6,12 @@ package login;
 
 // 用户登录请求
 message LoginReq {
-  string Token = 1;
+  int64 Uid = 1;
+  string Token = 2;
 }
 
 // 用户登录响应
 message LoginRes {
   bool State = 1;
-  int64 Uid = 2;
+  string Msg = 2;
 }

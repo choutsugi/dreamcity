@@ -24,7 +24,8 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // 用户登录请求
 type LoginReq struct {
-	Token                string   `protobuf:"bytes,1,opt,name=Token,proto3" json:"Token,omitempty"`
+	Uid                  int64    `protobuf:"varint,1,opt,name=Uid,proto3" json:"Uid,omitempty"`
+	Token                string   `protobuf:"bytes,2,opt,name=Token,proto3" json:"Token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -63,6 +64,13 @@ func (m *LoginReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LoginReq proto.InternalMessageInfo
 
+func (m *LoginReq) GetUid() int64 {
+	if m != nil {
+		return m.Uid
+	}
+	return 0
+}
+
 func (m *LoginReq) GetToken() string {
 	if m != nil {
 		return m.Token
@@ -73,7 +81,7 @@ func (m *LoginReq) GetToken() string {
 // 用户登录响应
 type LoginRes struct {
 	State                bool     `protobuf:"varint,1,opt,name=State,proto3" json:"State,omitempty"`
-	Uid                  int64    `protobuf:"varint,2,opt,name=Uid,proto3" json:"Uid,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=Msg,proto3" json:"Msg,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -119,11 +127,11 @@ func (m *LoginRes) GetState() bool {
 	return false
 }
 
-func (m *LoginRes) GetUid() int64 {
+func (m *LoginRes) GetMsg() string {
 	if m != nil {
-		return m.Uid
+		return m.Msg
 	}
-	return 0
+	return ""
 }
 
 func init() {
@@ -134,16 +142,16 @@ func init() {
 func init() { proto.RegisterFile("login.proto", fileDescriptor_67c21677aa7f4e4f) }
 
 var fileDescriptor_67c21677aa7f4e4f = []byte{
-	// 132 bytes of a gzipped FileDescriptorProto
+	// 139 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xce, 0xc9, 0x4f, 0xcf,
-	0xcc, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x05, 0x73, 0x94, 0x14, 0xb8, 0x38, 0x7c,
-	0x40, 0x8c, 0xa0, 0xd4, 0x42, 0x21, 0x11, 0x2e, 0xd6, 0x90, 0xfc, 0xec, 0xd4, 0x3c, 0x09, 0x46,
-	0x05, 0x46, 0x0d, 0xce, 0x20, 0x08, 0x47, 0xc9, 0x08, 0xae, 0xa2, 0x18, 0xa4, 0x22, 0xb8, 0x24,
-	0xb1, 0x24, 0x15, 0xac, 0x82, 0x23, 0x08, 0xc2, 0x11, 0x12, 0xe0, 0x62, 0x0e, 0xcd, 0x4c, 0x91,
-	0x60, 0x52, 0x60, 0xd4, 0x60, 0x0e, 0x02, 0x31, 0x9d, 0x24, 0x4f, 0x3c, 0x92, 0x63, 0xbc, 0xf0,
-	0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x19, 0x8f, 0xe5, 0x18, 0xa2, 0xd8, 0xf5, 0xf4, 0xc1,
-	0x16, 0x26, 0xb1, 0x81, 0xad, 0x37, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x97, 0x51, 0x9e, 0xfc,
-	0x8d, 0x00, 0x00, 0x00,
+	0xcc, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x05, 0x73, 0x94, 0x8c, 0xb8, 0x38, 0x7c,
+	0x40, 0x8c, 0xa0, 0xd4, 0x42, 0x21, 0x01, 0x2e, 0xe6, 0xd0, 0xcc, 0x14, 0x09, 0x46, 0x05, 0x46,
+	0x0d, 0xe6, 0x20, 0x10, 0x53, 0x48, 0x84, 0x8b, 0x35, 0x24, 0x3f, 0x3b, 0x35, 0x4f, 0x82, 0x49,
+	0x81, 0x51, 0x83, 0x33, 0x08, 0xc2, 0x41, 0xd2, 0x53, 0x0c, 0x52, 0x11, 0x5c, 0x92, 0x58, 0x92,
+	0x0a, 0xd6, 0xc5, 0x11, 0x04, 0xe1, 0x80, 0x4c, 0xf2, 0x2d, 0x4e, 0x87, 0xea, 0x02, 0x31, 0x9d,
+	0x24, 0x4f, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x19, 0x8f,
+	0xe5, 0x18, 0xa2, 0xd8, 0xf5, 0xf4, 0xc1, 0x4e, 0x48, 0x62, 0x03, 0x3b, 0xc8, 0x18, 0x10, 0x00,
+	0x00, 0xff, 0xff, 0xd3, 0x0e, 0x00, 0xdc, 0x9f, 0x00, 0x00, 0x00,
 }
 
 func (m *LoginReq) Marshal() (dAtA []byte, err error) {
@@ -175,7 +183,12 @@ func (m *LoginReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Token)
 		i = encodeVarintLogin(dAtA, i, uint64(len(m.Token)))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
+	}
+	if m.Uid != 0 {
+		i = encodeVarintLogin(dAtA, i, uint64(m.Uid))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -204,10 +217,12 @@ func (m *LoginRes) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.Uid != 0 {
-		i = encodeVarintLogin(dAtA, i, uint64(m.Uid))
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintLogin(dAtA, i, uint64(len(m.Msg)))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x12
 	}
 	if m.State {
 		i--
@@ -239,6 +254,9 @@ func (m *LoginReq) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Uid != 0 {
+		n += 1 + sovLogin(uint64(m.Uid))
+	}
 	l = len(m.Token)
 	if l > 0 {
 		n += 1 + l + sovLogin(uint64(l))
@@ -258,8 +276,9 @@ func (m *LoginRes) Size() (n int) {
 	if m.State {
 		n += 2
 	}
-	if m.Uid != 0 {
-		n += 1 + sovLogin(uint64(m.Uid))
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovLogin(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -303,6 +322,25 @@ func (m *LoginReq) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Uid", wireType)
+			}
+			m.Uid = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLogin
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Uid |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
 			}
@@ -406,10 +444,10 @@ func (m *LoginRes) Unmarshal(dAtA []byte) error {
 			}
 			m.State = bool(v != 0)
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Uid", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
 			}
-			m.Uid = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowLogin
@@ -419,11 +457,24 @@ func (m *LoginRes) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Uid |= int64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLogin
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLogin
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipLogin(dAtA[iNdEx:])
