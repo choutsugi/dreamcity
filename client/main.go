@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"dreamcity/client/seq"
 	pb "dreamcity/shared/pb/login"
 	"encoding/binary"
 	"github.com/gogo/protobuf/proto"
@@ -88,7 +87,7 @@ func main() {
 
 		dataBuff := bytes.NewBuffer([]byte{})
 		_ = binary.Write(dataBuff, binary.LittleEndian, uint32(len(msg)+msgHeadSeqIdLen+msgHeadRouteIdLen))
-		_ = binary.Write(dataBuff, binary.LittleEndian, seq.SeqIns.NextID())
+		_ = binary.Write(dataBuff, binary.LittleEndian, 1)
 		_ = binary.Write(dataBuff, binary.LittleEndian, routeIdLogin)
 		_ = binary.Write(dataBuff, binary.LittleEndian, msg)
 		pack := dataBuff.Bytes()
