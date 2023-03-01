@@ -1,0 +1,54 @@
+{
+  "scenes":[
+    {
+      "id": "CenterSquare",
+      "name": "中心广场",
+      "minX": 0,
+      "maxX": 500,
+      "contsX": 10,
+      "minY": 0,
+      "maxY": 500,
+      "contsY": 10
+    },
+    {
+      "id": "XinGuoFeng",
+      "name": "新国风",
+      "minX": 0,
+      "maxX": 500,
+      "contsX": 10,
+      "minY": 0,
+      "maxY": 500,
+      "contsY": 10
+    },
+    {
+      "id": "HuaPi",
+      "name": "画皮世界",
+      "minX": 0,
+      "maxX": 500,
+      "contsX": 10,
+      "minY": 0,
+      "maxY": 500,
+      "contsY": 10
+    },
+    {
+      "id": "DianJing",
+      "name": "电竞馆",
+      "minX": 0,
+      "maxX": 500,
+      "contsX": 10,
+      "minY": 0,
+      "maxY": 500,
+      "contsY": 10
+    },
+    {
+      "id": "DongSheng",
+      "name": "东盛展厅",
+      "minX": 0,
+      "maxX": 500,
+      "contsX": 10,
+      "minY": 0,
+      "maxY": 500,
+      "contsY": 10
+    }
+  ]
+}
