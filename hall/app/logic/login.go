@@ -41,27 +41,30 @@ func (l *Login) login(ctx *node.Context) {
 	if err := ctx.Request.Parse(req); err != nil {
 		log.Errorf("invalid login message, err: %v", err)
 		res.State = false
+		res.Msg = "消息未注册"
 		return
 	}
 
-	// 获取IP
-	ip, err := ctx.GetIP()
-	if err != nil {
-		log.Errorf("get client ip failed, err: %v", err)
-		res.State = false
-		return
-	}
+	/*
+		// 获取IP
+		ip, err := ctx.GetIP()
+		if err != nil {
+			log.Errorf("get client ip failed, err: %v", err)
+			res.State = false
+			return
+		}
 
-	// 登录逻辑
-	uid, err := l.loginSvc.TokenLogin(req.GetToken(), ip)
-	if err != nil {
-		log.Errorf("login failed, err: %v", err)
-		res.State = false
-		return
-	}
+		// 登录逻辑
+		uid, err := l.loginSvc.TokenLogin(req.GetToken(), ip)
+		if err != nil {
+			log.Errorf("login failed, err: %v", err)
+			res.State = false
+			return
+		}
+	*/
 
 	// 绑定网关
-	if err := ctx.BindGate(uid); err != nil {
+	if err := ctx.BindGate(req.Uid); err != nil {
 		log.Errorf("bind gate failed, err: %v", err)
 		res.State = false
 		return
@@ -69,8 +72,8 @@ func (l *Login) login(ctx *node.Context) {
 
 	// 响应
 	res.State = true
-	res.Uid = uid
-	log.Infof("登录成功, uid = %d\n", res.Uid)
+	res.Msg = "登录成功"
+	log.Infof("登录成功, uid = %d\n", req.Uid)
 }
 
 func (l *Login) Init() {
