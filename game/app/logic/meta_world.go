@@ -5,6 +5,7 @@ import (
 	"dreamcity/game/app/entity"
 	"dreamcity/shared/pb/code"
 	pb "dreamcity/shared/pb/world"
+	"dreamcity/shared/pkg/aoi"
 	"dreamcity/shared/pkg/sugar"
 	"dreamcity/shared/route"
 	"github.com/dobyte/due/cluster"
@@ -258,6 +259,158 @@ func (l *MetaWorld) LeaveWorld(ctx *node.Context) {
 		},
 	})
 	scene.RemPlayer(player)
+
+	res.Code = code.Code_Ok
+}
+
+func (l *MetaWorld) SyncInfo(ctx *node.Context) {
+
+	req := &pb.SyncInfoReq{}
+	res := &pb.SyncInfoRes{}
+
+	defer func() {
+		if err := ctx.Response(res); err != nil {
+			log.Errorf("sync info response failed, err: %+v\n", err)
+		}
+	}()
+
+	// 解析参数
+	if err := ctx.Request.Parse(req); err != nil {
+		log.Errorf("invalid sync_info message, err: %v", err)
+		res.Code = code.Code_Abnormal
+		return
+	}
+	// 检查是否登录
+	uid := ctx.Request.UID
+	if uid == 0 {
+		res.Code = code.Code_NotLogin
+		return
+	}
+	// 玩家ID使用UID
+	pid := uid
+	// 获取场景
+	player := l.playerMgr.GetPlayer(pid)
+	if player == nil {
+		res.Code = code.Code_NotFound
+		return
+	}
+	world := player.GetWorld()
+	if world == nil {
+		res.Code = code.Code_NotFound
+		return
+	}
+	// 检查位置是否正确
+	if req.GetPos().GetX() < float32(world.AoiMgr.MinX) || req.GetPos().GetX() > float32(world.AoiMgr.MaxX) ||
+		req.GetPos().GetZ() < float32(world.AoiMgr.MinY) || req.GetPos().GetZ() > float32(world.AoiMgr.MaxY) {
+		res.Code = code.Code_IllegalParams
+		return
+	}
+	// 獲取移動前後的grid
+	oldGid := world.AoiMgr.GetGidByPos(player.PosX, player.PosZ)
+	newGid := world.AoiMgr.GetGidByPos(req.GetPos().GetX(), req.GetPos().GetZ())
+	// 更新玩家信息
+	if req.GetPos() != nil {
+		player.PosX = req.GetPos().GetX()
+		player.PosY = req.GetPos().GetY()
+		player.PosZ = req.GetPos().GetZ()
+		player.PosV = req.GetPos().GetV()
+	} else {
+		player.PosX = 0
+		player.PosY = 0
+		player.PosZ = 0
+		player.PosV = 0
+	}
+	if req.GetAct() != nil {
+		player.ActSit = req.GetAct().GetSit()
+		player.ActJump = req.GetAct().GetJump()
+		player.ActDance = req.GetAct().GetDance()
+	} else {
+		player.ActSit = 0
+		player.ActJump = 0
+		player.ActDance = 0
+	}
+
+	if oldGid != newGid {
+		world.AoiMgr.RemPidFromGridByGid(pid, oldGid)
+		world.AoiMgr.AddPidToGridByGid(pid, newGid)
+
+		oldGrids := world.AoiMgr.GetSurroundGrids(oldGid)
+		oldGridsMap := make(map[int]struct{}, len(oldGrids))
+		for _, grid := range oldGrids {
+			oldGridsMap[grid.ID] = struct{}{}
+		}
+
+		newGrids := world.AoiMgr.GetSurroundGrids(newGid)
+		newGridsMap := make(map[int]struct{}, len(newGrids))
+		for _, grid := range newGrids {
+			newGridsMap[grid.ID] = struct{}{}
+		}
+
+		// 消失在视野的格子/保持不變的格子
+		leavingGrids := make([]*aoi.Grid, 0)
+		keepingGrids := make([]*aoi.Grid, 0)
+		for _, grid := range oldGrids {
+			if _, ok := newGridsMap[grid.ID]; !ok {
+				leavingGrids = append(leavingGrids, grid)
+			} else {
+				keepingGrids = append(keepingGrids, grid)
+			}
+		}
+		// 消失在视野的玩家
+		leavingPids := make([]int64, 0)
+		for _, grid := range leavingGrids {
+			pids := world.AoiMgr.GetPidsByGid(grid.ID)
+			leavingPids = append(leavingPids, pids...)
+		}
+		// 保持不變的玩家
+		keepingPids := make([]int64, 0)
+		for _, grid := range keepingGrids {
+			pids := world.AoiMgr.GetPidsByGid(grid.ID)
+			keepingPids = append(keepingPids, pids...)
+		}
+		// 出現在視野的格子
+		enteringGrids := make([]*aoi.Grid, 0)
+		for _, grid := range newGrids {
+			if _, ok := oldGridsMap[grid.ID]; !ok {
+				enteringGrids = append(enteringGrids, grid)
+			}
+		}
+		// 出現在视野的玩家
+		enteringPids := make([]int64, 0)
+		for _, grid := range enteringGrids {
+			pids := world.AoiMgr.GetPidsByGid(grid.ID)
+			enteringPids = append(enteringPids, pids...)
+		}
+
+	} else {
+		l.proxy.Multicast(l.ctx, &node.MulticastArgs{
+			Kind:    session.User,
+			Targets: world.AoiMgr.GetPidsByPos(player.PosX, player.PosZ),
+			Message: &node.Message{
+				Route: route.Broadcast,
+				Data: &pb.BroadCast{
+					Pid: pid,
+					Tp:  pb.BroadCast_PlayerInfo,
+					Data: &pb.BroadCast_Player{
+						Player: &pb.Player{
+							Pid: pid,
+							Pos: &pb.Position{
+								X: player.PosX,
+								Y: player.PosY,
+								Z: player.PosZ,
+								V: player.PosV,
+							},
+							Act: &pb.Action{
+								Sit:   player.ActSit,
+								Jump:  player.ActJump,
+								Dance: player.ActDance,
+							},
+						},
+					},
+				},
+			},
+		})
+	}
 
 	res.Code = code.Code_Ok
 }
