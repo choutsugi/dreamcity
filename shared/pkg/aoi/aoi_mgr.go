@@ -2,7 +2,7 @@ package aoi
 
 import "fmt"
 
-type GridMgr struct {
+type Mgr struct {
 	MinX  int
 	MaxX  int
 	CntsX int
@@ -12,8 +12,8 @@ type GridMgr struct {
 	grids map[int]*Grid
 }
 
-func NewGridMgr(minX, maxX, cntsX, minY, maxY, cntsY int) *GridMgr {
-	mgr := &GridMgr{
+func NewAoiMgr(minX, maxX, cntsX, minY, maxY, cntsY int) *Mgr {
+	mgr := &Mgr{
 		MinX:  minX,
 		MaxX:  maxX,
 		CntsX: cntsX,
@@ -37,15 +37,15 @@ func NewGridMgr(minX, maxX, cntsX, minY, maxY, cntsY int) *GridMgr {
 	return mgr
 }
 
-func (m *GridMgr) gridWidth() int {
+func (m *Mgr) gridWidth() int {
 	return (m.MaxX - m.MinX) / m.CntsX
 }
 
-func (m *GridMgr) gridLength() int {
+func (m *Mgr) gridLength() int {
 	return (m.MaxY - m.MinY) / m.CntsY
 }
 
-func (m *GridMgr) String() string {
+func (m *Mgr) String() string {
 	str := fmt.Sprintf("AOIManagr:\nminX:%d, maxX:%d, cntsX:%d, minY:%d, maxY:%d, cntsY:%d\n GrIDs in AOI Manager:\n",
 		m.MinX, m.MaxX, m.CntsX, m.MinY, m.MaxY, m.CntsY)
 	for _, grid := range m.grids {
@@ -54,7 +54,7 @@ func (m *GridMgr) String() string {
 	return str
 }
 
-func (m *GridMgr) GetSurroundGrids(gid int) []*Grid {
+func (m *Mgr) GetSurroundGrids(gid int) []*Grid {
 
 	if _, ok := m.grids[gid]; !ok {
 		return nil
@@ -82,14 +82,14 @@ func (m *GridMgr) GetSurroundGrids(gid int) []*Grid {
 	return grids
 }
 
-func (m *GridMgr) GetGidByPos(x, y float32) int {
+func (m *Mgr) GetGidByPos(x, y float32) int {
 	gx := (int(x) - m.MinX) / m.gridWidth()
 	gy := (int(y) - m.MinY) / m.gridLength()
 
 	return gy*m.CntsX + gx
 }
 
-func (m *GridMgr) GetPidsByPos(x, y float32) []int64 {
+func (m *Mgr) GetPidsByPos(x, y float32) []int64 {
 	pids := make([]int64, 0)
 	gid := m.GetGidByPos(x, y)
 	grids := m.GetSurroundGrids(gid)
@@ -100,27 +100,27 @@ func (m *GridMgr) GetPidsByPos(x, y float32) []int64 {
 	return pids
 }
 
-func (m *GridMgr) GetPidsByGid(gid int) []int64 {
+func (m *Mgr) GetPidsByGid(gid int) []int64 {
 	pids := make([]int64, 0)
 	pids = m.grids[gid].GetPids()
 	return pids
 }
 
-func (m *GridMgr) RemPidFromGridByGid(pid int64, gid int) {
+func (m *Mgr) RemPidFromGridByGid(pid int64, gid int) {
 	m.grids[gid].Remove(pid)
 }
 
-func (m *GridMgr) AddPidToGridByGid(pid int64, gid int) {
+func (m *Mgr) AddPidToGridByGid(pid int64, gid int) {
 	m.grids[gid].Add(pid)
 }
 
-func (m *GridMgr) AddPidToGridByPos(pid int64, x, y float32) {
+func (m *Mgr) AddPidToGridByPos(pid int64, x, y float32) {
 	gid := m.GetGidByPos(x, y)
 	grid := m.grids[gid]
 	grid.Add(pid)
 }
 
-func (m *GridMgr) RemPidFromGridByPos(pid int64, x, y float32) {
+func (m *Mgr) RemPidFromGridByPos(pid int64, x, y float32) {
 	gid := m.GetGidByPos(x, y)
 	grid := m.grids[gid]
 	grid.Remove(pid)

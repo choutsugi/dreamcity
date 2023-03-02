@@ -22,22 +22,20 @@ func NewPlayerMgr() *PlayerMgr {
 	return playerMgrInstance
 }
 
-// TODO：加载玩家、获取玩家、卸载玩家 => 添加到玩家管理器 => 添加到场景管理器
-
 func (mgr *PlayerMgr) AddPlayer(player *Player) {
 	mgr.rw.Lock()
 	defer mgr.rw.Unlock()
-	mgr.players[player.UID()] = player
+	mgr.players[player.Pid] = player
 }
 
 func (mgr *PlayerMgr) RemPlayer(player *Player) {
 	mgr.rw.Lock()
 	defer mgr.rw.Unlock()
-	delete(mgr.players, player.UID())
+	delete(mgr.players, player.Pid)
 }
 
-func (mgr *PlayerMgr) GetPlayer(uid int64) *Player {
+func (mgr *PlayerMgr) GetPlayer(pid int64) *Player {
 	mgr.rw.Lock()
 	defer mgr.rw.Unlock()
-	return mgr.players[uid]
+	return mgr.players[pid]
 }

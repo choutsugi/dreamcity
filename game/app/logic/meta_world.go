@@ -3,9 +3,8 @@ package logic
 import (
 	"context"
 	"dreamcity/game/app/entity"
-	"dreamcity/shared/model/user"
 	"dreamcity/shared/pb/code"
-	pb "dreamcity/shared/pb/scene"
+	pb "dreamcity/shared/pb/world"
 	"dreamcity/shared/pkg/sugar"
 	"dreamcity/shared/route"
 	"github.com/dobyte/due/cluster"
@@ -18,45 +17,51 @@ import (
 type MetaWorld struct {
 	proxy     *node.Proxy
 	ctx       context.Context
-	sceneMgr  *entity.SceneMgr
+	worldMgr  *entity.WorldMgr
 	playerMgr *entity.PlayerMgr
 }
 
 func NewMetaWorld(proxy *node.Proxy) *MetaWorld {
 
-	opts := make([]*entity.SceneOpts, 0)
-	if err := config.Get("dreamcity.scenes").Scan(&opts); err != nil {
-		log.Fatalf("failed to load dreamcity scenes config: %+v\n", err)
+	opts := make([]*entity.WorldOpts, 0)
+	if err := config.Get("dreamcity.worlds").Scan(&opts); err != nil {
+		log.Fatalf("failed to load dreamcity worlds config: %+v\n", err)
 	}
 
-	return &MetaWorld{
+	metaWorld := &MetaWorld{
 		proxy:     proxy,
 		ctx:       context.Background(),
-		sceneMgr:  entity.NewSceneMgr(opts), // 场景管理器
-		playerMgr: entity.NewPlayerMgr(),    // 玩家管理器
+		worldMgr:  entity.NewWorldMgr(opts),
+		playerMgr: entity.NewPlayerMgr(),
 	}
+
+	return metaWorld
 }
 
 func (l *MetaWorld) Init() {
-	l.proxy.Events().AddEventHandler(cluster.Disconnect, l.disconnect)
-	l.proxy.Router().AddRouteHandler(route.EnterScene, false, l.enterScene)
-	l.proxy.Router().AddRouteHandler(route.LeaveScene, false, l.leaveScene)
+	l.proxy.Events().AddEventHandler(cluster.Disconnect, l.hookDisconnect)
+	l.proxy.Router().AddRouteHandler(route.EnterScene, false, l.EnterWorld)
+	l.proxy.Router().AddRouteHandler(route.LeaveScene, false, l.LeaveWorld)
 }
 
-func (l *MetaWorld) disconnect(event *node.Event) {
-	player := l.playerMgr.GetPlayer(event.UID)
+func (l *MetaWorld) hookDisconnect(event *node.Event) {
+
+	uid := event.UID
+
+	player := l.playerMgr.GetPlayer(uid)
 	if player != nil {
-		if scene := player.GetScene(); scene != nil {
+		if scene := player.GetWorld(); scene != nil {
 			// 获取周围的玩家ID
-			targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
-			targets = sugar.Delete(targets, event.UID)
+			targets := scene.AoiMgr.GetPidsByPos(player.PosX, player.PosZ)
+			targets = sugar.Delete(targets, uid)
 			l.proxy.Multicast(l.ctx, &node.MulticastArgs{
 				Kind:    session.User,
 				Targets: targets,
 				Message: &node.Message{
-					Route: route.SyncLeave,
-					Data: &pb.SyncLeave{
-						Pid: event.UID,
+					Route: route.Broadcast,
+					Data: &pb.BroadCast{
+						Pid: uid,
+						Tp:  pb.BroadCast_PlayerLeave,
 					},
 				},
 			})
@@ -69,7 +74,7 @@ func (l *MetaWorld) disconnect(event *node.Event) {
 	event.Proxy.UnbindNode(l.ctx, event.UID, nid)
 }
 
-func (l *MetaWorld) enterScene(ctx *node.Context) {
+func (l *MetaWorld) EnterWorld(ctx *node.Context) {
 
 	req := &pb.EnterReq{}
 	res := &pb.EnterRes{}
@@ -92,28 +97,42 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 		res.Code = code.Code_NotLogin
 		return
 	}
+	// 玩家ID使用用户ID
+	pid := uid
 	// 获取场景
-	scene, err := l.sceneMgr.GetScene(req.GetSid())
+	scene, err := l.worldMgr.GetWorld(req.GetSid())
 	if err != nil {
 		res.Code = code.Code_IllegalParams
 		return
 	}
 	// 检查位置是否正确
-	if req.GetPos().GetX() < float32(scene.GridMgr.MinX) || req.GetPos().GetX() > float32(scene.GridMgr.MaxX) ||
-		req.GetPos().GetZ() < float32(scene.GridMgr.MinY) || req.GetPos().GetZ() > float32(scene.GridMgr.MaxY) {
+	if req.GetPos().GetX() < float32(scene.AoiMgr.MinX) || req.GetPos().GetX() > float32(scene.AoiMgr.MaxX) ||
+		req.GetPos().GetZ() < float32(scene.AoiMgr.MinY) || req.GetPos().GetZ() > float32(scene.AoiMgr.MaxY) {
 		res.Code = code.Code_IllegalParams
 		return
 	}
 	// 检查玩家是否已在其它场景中
-	player := l.playerMgr.GetPlayer(uid)
+	player := l.playerMgr.GetPlayer(pid)
 	if player != nil {
-		if scene := player.GetScene(); scene != nil {
-			// todo：广播玩家离开
+		if scene := player.GetWorld(); scene != nil {
+			// 获取周围的玩家ID
+			targets := scene.AoiMgr.GetPidsByPos(player.PosX, player.PosZ)
+			targets = sugar.Delete(targets, pid)
+			l.proxy.Multicast(l.ctx, &node.MulticastArgs{
+				Kind:    session.User,
+				Targets: targets,
+				Message: &node.Message{
+					Route: route.Broadcast,
+					Data: &pb.BroadCast{
+						Pid: pid,
+						Tp:  pb.BroadCast_PlayerLeave,
+					},
+				},
+			})
 			scene.RemPlayer(player)
 		}
 	} else {
-		user := &user.User{UID: uid}
-		player = entity.NewPlayer(user, req.Pos.X, req.Pos.Y, req.Pos.Z, req.Pos.V)
+		player = entity.NewPlayer(pid, req.Pos.X, req.Pos.Y, req.Pos.Z, req.Pos.V)
 	}
 	// 玩家进入场景
 	{
@@ -122,8 +141,8 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 		// 玩家管理器添加玩家
 		l.playerMgr.AddPlayer(player)
 		// 获取周围的玩家ID
-		targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
-		targets = sugar.Delete(targets, uid)
+		targets := scene.AoiMgr.GetPidsByPos(player.PosX, player.PosZ)
+		targets = sugar.Delete(targets, pid)
 		// 广播玩家出现
 		l.proxy.Multicast(l.ctx, &node.MulticastArgs{
 			Kind:    session.User,
@@ -131,14 +150,22 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 			Message: &node.Message{
 				Route: route.Broadcast,
 				Data: &pb.BroadCast{
-					Pid: uid,
+					Pid: pid,
 					Tp:  pb.BroadCast_PlayerAppear,
-					Data: &pb.BroadCast_Pos{
-						Pos: &pb.Position{
-							X: player.PosX,
-							Y: player.PosY,
-							Z: player.PosZ,
-							V: player.PosV,
+					Data: &pb.BroadCast_Player{
+						Player: &pb.Player{
+							Pid: pid,
+							Pos: &pb.Position{
+								X: player.PosX,
+								Y: player.PosY,
+								Z: player.PosZ,
+								V: player.PosV,
+							},
+							Act: &pb.Action{
+								Sit:   player.ActSit,
+								Jump:  player.ActJump,
+								Dance: player.ActDance,
+							},
 						},
 					},
 				},
@@ -149,19 +176,23 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 		for _, target := range targets {
 			p := l.playerMgr.GetPlayer(target)
 			surPs = append(surPs, &pb.Player{
-				Pid: p.UID(),
+				Pid: p.Pid,
 				Pos: &pb.Position{
 					X: p.PosX,
 					Y: p.PosY,
 					Z: p.PosZ,
 					V: p.PosV,
 				},
-				Act: nil, // TODO
+				Act: &pb.Action{
+					Sit:   p.ActSit,
+					Jump:  p.ActJump,
+					Dance: p.ActDance,
+				},
 			})
 		}
 		l.proxy.Push(l.ctx, &node.PushArgs{
 			Kind:   session.User,
-			Target: uid,
+			Target: pid,
 			Message: &node.Message{
 				Route: route.SyncArea,
 				Data: &pb.SyncArea{
@@ -176,7 +207,7 @@ func (l *MetaWorld) enterScene(ctx *node.Context) {
 	res.Code = code.Code_Ok
 }
 
-func (l *MetaWorld) leaveScene(ctx *node.Context) {
+func (l *MetaWorld) LeaveWorld(ctx *node.Context) {
 
 	req := &pb.LeaveReq{}
 	res := &pb.LeaveRes{}
@@ -199,27 +230,30 @@ func (l *MetaWorld) leaveScene(ctx *node.Context) {
 		res.Code = code.Code_NotLogin
 		return
 	}
+	// 玩家ID使用UID
+	pid := uid
 	// 获取场景
-	player := l.playerMgr.GetPlayer(uid)
+	player := l.playerMgr.GetPlayer(pid)
 	if player == nil {
 		res.Code = code.Code_NotFound
 		return
 	}
-	scene := player.GetScene()
+	scene := player.GetWorld()
 	if scene == nil {
 		res.Code = code.Code_NotFound
 		return
 	}
 	// 移除玩家
-	targets := scene.GridMgr.GetPidsByPos(player.PosX, player.PosZ)
-	targets = sugar.Delete(targets, uid)
+	targets := scene.AoiMgr.GetPidsByPos(player.PosX, player.PosZ)
+	targets = sugar.Delete(targets, pid)
 	l.proxy.Multicast(l.ctx, &node.MulticastArgs{
 		Kind:    session.User,
 		Targets: targets,
 		Message: &node.Message{
-			Route: route.SyncLeave,
-			Data: &pb.SyncLeave{
-				Pid: uid,
+			Route: route.Broadcast,
+			Data: &pb.BroadCast{
+				Pid: pid,
+				Tp:  pb.BroadCast_PlayerLeave,
 			},
 		},
 	})

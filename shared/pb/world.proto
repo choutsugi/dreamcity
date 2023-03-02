@@ -1,16 +1,16 @@
 syntax = "proto3";
 
-option go_package = "dreamcity/shared/pb/scene";
+option go_package = "dreamcity/shared/pb/world";
 
-package scene;
+package world;
 
 import "code.proto";
 //=============================
 message Position {
-  float X = 1;
-  float Y = 2;
-  float Z = 3;
-  float V = 4;
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float v = 4;
 }
 message Action {
   int32 sit   = 1;
@@ -24,8 +24,8 @@ message Player{
 }
 //=============================
 message EnterReq {
-  string Sid = 1;
-  Position Pos = 2;
+  string sid = 1;
+  Position pos = 2;
 }
 message EnterRes {
   code.Code code = 1;
@@ -36,20 +36,25 @@ message LeaveRes {
   code.Code code = 1;
 }
 //=============================
+message SyncInfoReq {
+  Position pos = 1;
+  Action act = 2;
+}
+message SyncInfoRes {
+  code.Code code = 1;
+}
+//=============================
 // 广播
 message BroadCast{
   enum Tp {
     PlayerAppear=0; // 玩家出现
-    PlayerMove=1;   // 玩家移动
-    PlayerAction=2; // 玩家动作
-    ChatContent=3;  // 玩家聊天
+    PlayerInfo=1;   // 玩家信息
+    PlayerLeave=2;
   }
   int64 pid=1;
   Tp tp=2;
   oneof Data {
-    string content=3;// 聊天信息
-    Position pos=4;  // 玩家位置
-    Action act=5;    // 玩家动作
+    Player player = 3;
   }
 }
 // 获取周围玩家信息

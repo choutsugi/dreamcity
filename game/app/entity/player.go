@@ -1,23 +1,20 @@
 package entity
 
-import (
-	"dreamcity/shared/model/user"
-	"sync"
-)
-
 type Player struct {
-	user  *user.User
-	rw    sync.RWMutex
-	scene *Scene
-	PosX  float32
-	PosY  float32
-	PosZ  float32
-	PosV  float32
+	Pid      int64
+	world    *World
+	PosX     float32
+	PosY     float32
+	PosZ     float32
+	PosV     float32
+	ActSit   int32
+	ActJump  int32
+	ActDance int32
 }
 
-func NewPlayer(user *user.User, posX, posY, posZ, posV float32) *Player {
+func NewPlayer(pid int64, posX, posY, posZ, posV float32) *Player {
 	return &Player{
-		user: user,
+		Pid:  pid,
 		PosX: posX,
 		PosY: posY,
 		PosZ: posZ,
@@ -25,16 +22,6 @@ func NewPlayer(user *user.User, posX, posY, posZ, posV float32) *Player {
 	}
 }
 
-func (p *Player) UID() int64 {
-	return p.user.UID
-}
-
-func (p *Player) User() *user.User {
-	u := p.user
-	return u
-}
-
-func (p *Player) GetScene() *Scene {
-	scene := p.scene
-	return scene
+func (p *Player) GetWorld() *World {
+	return p.world
 }
