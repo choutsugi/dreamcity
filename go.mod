@@ -8,6 +8,8 @@ require (
 	github.com/dobyte/due/network/tcp v0.0.0-20230224062538-c72aa90db9f2
 	github.com/dobyte/due/registry/etcd v0.0.0-20230224062538-c72aa90db9f2
 	github.com/dobyte/due/transport/grpc v0.0.0-20230224062538-c72aa90db9f2
+	github.com/gogo/protobuf v1.3.2
+	github.com/golang/protobuf v1.5.2
 )
 
 require (
@@ -21,8 +23,6 @@ require (
 	github.com/ethereum/go-ethereum v1.10.25 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jinzhu/copier v0.3.5 // indirect

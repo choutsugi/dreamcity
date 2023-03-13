@@ -18,7 +18,7 @@ const (
 )
 
 const (
-	routeIdLogin uint16 = 1 // 登录路由ID
+	routeIdLogin int16 = 1 // 登录路由ID
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	// 心跳
 	go func() {
 		dataBuff := bytes.NewBuffer([]byte{})
-		_ = binary.Write(dataBuff, binary.LittleEndian, uint32(0))
+		_ = binary.Write(dataBuff, binary.LittleEndian, int32(0))
 		hbData := dataBuff.Bytes()
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
@@ -49,9 +49,9 @@ func main() {
 			// 解析消息头
 			var (
 				msgHead    []byte
-				msgLen     uint32
-				msgSeqID   uint16
-				msgRouteID uint16
+				msgLen     int32
+				msgSeqID   int16
+				msgRouteID int16
 			)
 			msgHead = make([]byte, msgHeadLen+msgHeadSeqIdLen+msgHeadRouteIdLen)
 			_, _ = io.ReadFull(conn, msgHead)
@@ -79,15 +79,15 @@ func main() {
 
 	// 登录
 	{
-		req := pb.LoginReq{Token: "token"}
+		req := pb.LoginReq{Uid: 10000, Token: "token"}
 		msg, err := proto.Marshal(&req)
 		if err != nil {
 			panic(err)
 		}
 
 		dataBuff := bytes.NewBuffer([]byte{})
-		_ = binary.Write(dataBuff, binary.LittleEndian, uint32(len(msg)+msgHeadSeqIdLen+msgHeadRouteIdLen))
-		_ = binary.Write(dataBuff, binary.LittleEndian, 1)
+		_ = binary.Write(dataBuff, binary.LittleEndian, int32(len(msg)+msgHeadSeqIdLen+msgHeadRouteIdLen))
+		_ = binary.Write(dataBuff, binary.LittleEndian, int16(1))
 		_ = binary.Write(dataBuff, binary.LittleEndian, routeIdLogin)
 		_ = binary.Write(dataBuff, binary.LittleEndian, msg)
 		pack := dataBuff.Bytes()
